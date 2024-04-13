@@ -132,15 +132,15 @@ def optimLBrac():
 
 def optimBridge():
     corners = np.array([[0, 0],
-                        [50, 0],
-                        [50, 10],
-                        [0, 10]])
+                        [20, 0],
+                        [20, 5],
+                        [0, 5]])
     leftBoundary = lambda x: np.isclose(x[0], 0)
-    forces = {(50, 0): (0, -1e3)}
-    opt = TopOpt(corners, meshDensity=100)
+    forces = {(20, 0): (0, -1e3)}
+    opt = TopOpt(corners, meshDensity=120)
     opt.createFixedBoundaries([leftBoundary])
     opt.applyForces(forces)
-    opt.optimize(targetVol=0.4,animate=True,lr=0.05)
+    opt.optimize(targetVol=0.4,animate=True,lr=0.1)
 
 if __name__ == "__main__":
     optimBridge()

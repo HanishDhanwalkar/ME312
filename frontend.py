@@ -110,5 +110,5 @@ def saveAnimation(history: np.ndarray, coords: np.ndarray):
         return scat,
     
     anim = FuncAnimation(fig, animate, range(nFrames-1), interval=250)
-    anim.save('descent.mp4', writer='ffmpeg')
+    anim.save('imgs/descent.mp4', writer='ffmpeg')
     print('Animation saved in descent.mp4')

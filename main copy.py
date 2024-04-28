@@ -109,15 +109,16 @@ class TopOpt:
 
 
 corners = np.array([[0, 0],
-           [15, 0],
-           [15, 5],
-           [5, 5],
-           [5, 15],
-           [0, 15]])
+           [3, 0],
+           [9, 5],
+           [15, 4],
+           [16, 6],
+           [8, 8],
+           [0, 4]])
 # topBoundary = lambda x: np.isclose(x[1], 15)
-fixedBoundary = lambda x: np.isclose(x[0], 5) & (x[1] >= 10) & (x[1] <= 15) 
-forces = {(15, 5): (-1e3, 0), (0,15): (0, -1e3)}
+fixedBoundary1 = lambda x: np.isclose(x[1], 0) #& (x >= 0) & (x <=3) 
+forces = {(0, 4): (1e3, 0), (15,4): (0, -1e3)}
 opt = TopOpt(corners, meshDensity=70)
-opt.createFixedBoundaries([fixedBoundary])
+opt.createFixedBoundaries([fixedBoundary1])
 opt.applyForces(forces)
 opt.optimize(targetVol=0.3,animate=False, numIter= 10)

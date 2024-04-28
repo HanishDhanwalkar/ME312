@@ -1,4 +1,4 @@
-from backend import Simulation
+from backend2 import Simulation
 from frontend import OptimizerPlot, setThreshold, saveAnimation
 import numpy as np
 
@@ -22,10 +22,14 @@ class TopOpt:
         self.nu = nu
         self.penalty = penalty
 
-    def createFixedBoundaries(self, locFunctions: list):
-        self.fixedBoundaries = locFunctions
-        for locFunction in locFunctions:
-            self.simulation.fixedBoundary(locFunction)
+    def createJoints(self, joints: dict):
+        self.fixedJoints = joints['f']
+        for locFunction in self.fixedJoints:
+            self.simulation.fixedJoint(locFunction)
+        
+        self.rollingJoints = joints['r']
+        for locFunction in self.rollingJoints:
+            self.simulation.rollingJoint(locFunction)
 
     def applyForces(self, forces: dict[tuple, tuple]):
         self.forces = forces
@@ -49,12 +53,12 @@ class TopOpt:
         mask = vec >= np.percentile(vec, p)
         return np.where(mask, vec, defaultVal)
     
-    def gradient(self):
+    def gradient(self, p: int = 300):
         C = self.simulation.complianceArr.vector.array 
         C = C * self.simulation.domain.h(2,np.arange(len(C), dtype='int32'))
         num = -self.penalty*(self.E-self.Emin)*self.density**(self.penalty-1)*C 
         denom = self.Emin + self.density**self.penalty*(self.E-self.Emin)
-        grad = self.normalize(num/denom)**300
+        grad = self.normalize(num/denom)**p
         return self.percentileMask(grad)
     
     def gaussianFilter(self, vec: np.ndarray, R: float = 0.3):
@@ -71,6 +75,8 @@ class TopOpt:
     def optimize(self, numIter: int = 50, 
                        targetVol: float = 0.5, 
                        lr: float = 0.1,
+                       p: float = 300,
+                       gr: float = 0.8,
                        saveResult: bool = True, 
                        animate: bool = False):
         vPrev = 2
@@ -86,9 +92,9 @@ class TopOpt:
             if vol <= targetVol or abs(vol-vPrev)<0.0001:
                 break
             vPrev = vol
-            grad = self.gradient()
+            grad = self.gradient(p)
             self.density = np.maximum(0.01, self.density-lr*grad)
-            self.density = self.gaussianFilter(self.density)
+            self.density = self.gaussianFilter(self.density, gr)
             self.density = self.normalize(self.density)
             self.density = self.percentileMask(self.density, 10, 0.01)
 
@@ -118,21 +124,22 @@ def optimLBrac():
     topBoundary = lambda x: np.isclose(x[1], 15)
     forces = {(15, 5): (0, -1e3)}
     opt = TopOpt(corners, meshDensity=70)
-    opt.createFixedBoundaries([topBoundary])
+    opt.createJoints({'f' : [topBoundary], 'r' : []})
     opt.applyForces(forces)
     opt.optimize(targetVol=0.3,animate=True)
 
 def optimBridge():
     corners = np.array([[0, 0],
-                        [20, 0],
-                        [20, 5],
-                        [0, 5]])
-    leftBoundary = lambda x: np.isclose(x[0], 0)
-    forces = {(20, 0): (0, -1e3)}
+                        [36, 0],
+                        [36, 6],
+                        [0, 6]])
+    leftBoundary = lambda x: np.isclose(x[0], 0, atol=1e-2) & (x[1]<=0.3)
+    rightBoundary = lambda x: np.isclose(x[1], 0, rtol=1e-2) & np.isclose(x[0], 36, rtol=1e-2)
+    forces = {(18, 6): (0, -1e4)}
     opt = TopOpt(corners, meshDensity=120)
-    opt.createFixedBoundaries([leftBoundary])
+    opt.createJoints({'f': [leftBoundary], 'r': [rightBoundary]})
     opt.applyForces(forces)
-    opt.optimize(targetVol=0.4,animate=True,lr=0.1)
+    opt.optimize(targetVol=0.3,animate=True,lr=0.1, p=300, gr=0.8)
 
 if __name__ == "__main__":
     optimBridge()

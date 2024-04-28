@@ -126,6 +126,7 @@ class Simulation:
 
         if not pyvista.OFF_SCREEN:
             p.show()
+            p.screenshot('imgs/stress.png')
         else:
             print("Unable to show plot.")
 
@@ -145,5 +146,6 @@ class Simulation:
 
         if not pyvista.OFF_SCREEN:
             p.show()
+            p.screenshot('imgs/density.png')
         else:
             print("Unable to show plot.")

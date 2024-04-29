@@ -1,6 +1,6 @@
 # Topology Optimization Using Python
 
-Check fenics from (fenics Project)[https://fenicsproject.org/download/]
+Check fenics from [Fenics Project](https://fenicsproject.org/download/)
 
 ```
 sudo add-apt-repository ppa:fenics-packages/fenics
